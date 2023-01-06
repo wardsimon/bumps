@@ -19,12 +19,6 @@ Perform Levenberg-Marquardt least-squares minimization, based on MINPACK-1.
     rivers@cars.uchicago.edu
     Updated versions can be found at http://cars.uchicago.edu/software
 
-  2022-09-21 [PAK] add 'double' parameter to select machine precision for
-  the objective function. This mainly affects numerical derivatives, forcing
-  the step size to be large enough that x + h != x, but will also change the
-  criteria for correcting degenerate qr decomposition and maybe stopping
-  conditions and returned status codes.
-
 
                                  DESCRIPTION
 
@@ -598,7 +592,7 @@ class mpfit:
                 damp=0., maxiter=200, factor=100., nprint=1,
                 iterfunct='default', iterkw={}, nocovar=0,
                 fastnorm=0, rescale=0, autoderivative=1, quiet=0,
-                diag=None, epsfcn=None, debug=0, double=1):
+                diag=None, epsfcn=None, debug=0):
       """
 Inputs:
   fcn:
@@ -751,9 +745,6 @@ Keywords:
       desired in the approximate solution.
       Default: 1E-10
 
-   double:
-      Use double=1 if fcn is double precision or double=0 for single precision. 
-
  Outputs:
 
    Returns an object of type mpfit.  The results are attributes of this class,
@@ -856,7 +847,7 @@ Keywords:
       self.fastnorm = fastnorm
       self.nfev = 0
       self.damp = damp
-      self.machar = machar(double=double)
+      self.machar = machar(double=1)
       machep = self.machar.machep
 
       if (fcn is None):
@@ -898,7 +889,7 @@ Keywords:
             return
 
       ## Make sure parameters are numpy arrays of type numpy.float
-      xall = numpy.asarray(xall, numpy.float)
+      xall = numpy.asarray(xall, numpy.float64)
 
       npar = len(xall)
       self.fnorm  = -1.
@@ -996,7 +987,7 @@ Keywords:
          self.errmsg = ''
 
       # Make sure x is a numpy array of type numpy.float
-      x = numpy.asarray(x, numpy.float)
+      x = numpy.asarray(x, numpy.float64)
 
       [self.status, fvec] = self.call(fcn, self.params, functkw)
       if (self.status < 0):
@@ -1408,9 +1399,9 @@ Keywords:
       test = default
       if isinstance(default, list): test=default[0]
       if isinstance(test, int):
-         values = numpy.asarray(values, numpy.int)
+         values = numpy.asarray(values, numpy.int32)
       elif isinstance(test, float):
-         values = numpy.asarray(values, numpy.float)
+         values = numpy.asarray(values, numpy.float64)
       return(values)
 
 
@@ -1482,7 +1473,7 @@ Keywords:
       ## Compute analytical derivative if requested
       if (autoderivative == 0):
          mperr = 0
-         fjac = numpy.zeros(nall, numpy.float)
+         fjac = numpy.zeros(nall, numpy.float64)
          numpy.put(fjac, ifree, 1.0)  ## Specify which parameters need derivatives
          [status, fp, pderiv] = self.call(fcn, xall, functkw, fjac=fjac)
 
@@ -1502,7 +1493,7 @@ Keywords:
             fjac.shape = [m, n]
             return(fjac)
 
-      fjac = numpy.zeros([m, n], numpy.float)
+      fjac = numpy.zeros([m, n], numpy.float64)
 
       h = eps * abs(x)
 
@@ -1687,7 +1678,7 @@ Keywords:
       n = sz[1]
 
       ## Compute the initial column norms and initialize arrays
-      acnorm = numpy.zeros(n, numpy.float)
+      acnorm = numpy.zeros(n, numpy.float64)
       for j in range(n):
          acnorm[j] = self.enorm(a[:,j])
       rdiag = acnorm.copy()
@@ -2260,5 +2251,3 @@ class machar:
       self.minlog = numpy.log(self.minnum)
       self.rdwarf = numpy.sqrt(self.minnum*1.5) * 10
       self.rgiant = numpy.sqrt(self.maxnum) * 0.1
-
-
