@@ -410,14 +410,6 @@ from __future__ import print_function
 
 import numpy
 
-np_float = getattr(numpy, 'float', None)
-if not np_float:
-    np_float = numpy.float64
-np_int = getattr(numpy, 'int', None)
-if not np_int:
-    np_int = numpy.int32
-
-
 #     Original FORTRAN documentation
 #     **********
 #
